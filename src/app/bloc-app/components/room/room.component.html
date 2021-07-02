@@ -26,8 +26,8 @@
       video</button>
 
 
-    <button id='startScreenButton' class='hidden' (click)="_io._rc.produce(mediaType.screen)">screen</button>
-    <button id='stopScreenButton' class='hidden' (click)="_io._rc.closeProducer(mediaType.screen)">close
+    <button id='startScreenButton' class='hidden' (click)="_io._rc.produce('screenType')">screen</button>
+    <button id='stopScreenButton' class='hidden' (click)="_io._rc.closeProducer('screenType')">close
       screen</button>
     <br />
   </div>
