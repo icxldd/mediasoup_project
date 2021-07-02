@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+
+  angular-admin-web:
+    image: registry.cn-hangzhou.aliyuncs.com/yqgs-pu/admin-web:0508
+    build:
+      context: .
+      dockerfile: image/Dockerfile

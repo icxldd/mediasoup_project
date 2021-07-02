@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  app-web-admin:
+    container_name: app-web-admin
+    image: registry.cn-hangzhou.aliyuncs.com/yqgs-pu/admin-web:0508
+    ports:
+      - "9000:9000"
+    restart: always
+
