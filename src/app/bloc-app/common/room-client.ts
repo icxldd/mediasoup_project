@@ -33,11 +33,7 @@ export class RoomClient {
   _producerTransport;
   _consumerTransport;
   _eventListeners;
-  /**
-  * map that contains a mediatype as key and producer_id as value
-  */
   _producerLabel;
-
   _navigator: any = navigator;
   constructor(localMediaEl, remoteVideoEl, remoteAudioEl, mediasoupClient, socket, room_id, name, successCallback) {
     this._localMediaEl = localMediaEl;
@@ -58,10 +54,6 @@ export class RoomClient {
     Object.keys(_EVENTS).forEach(function (evt) {
       this._eventListeners.set(evt, [])
     }.bind(this))
-
-
-
-
     this.createRoom(room_id).then(async function () {
       await this.join(name, room_id)
       this.initSockets()
