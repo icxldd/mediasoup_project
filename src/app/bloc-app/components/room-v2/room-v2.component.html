@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-03 17:30:03
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-03 19:52:43
+ * @LastEditTime: 2021-07-05 16:58:50
 -->
 <div>
   <div id="selfDevices">
@@ -46,18 +46,22 @@
   <div id='videoMedia' *ngIf="if_videoMedia">
     <h2>------local------</h2>
     <div id="localMedia">
-      <video *ngIf="localStream" [src]="localStream.stream" [id]="localStream.id" playsinline='false' autoplay="true" class="vid">
+      <video *ngFor="let item of localStreams"  [srcObject]="item.stream" [id]="item.id" playsinline='false' autoplay="true" class="vid">
       </video>
     </div>
     <h2>-----remote-----</h2>
     <div id="remoteVideos" class="container">
-      <video *ngFor="let item of remoteVideoStream"  [src]="item.stream" [id]="item.id" playsinline='false' autoplay="true" class="vid">
+      <video *ngFor="let item of remoteVideoStream" [srcObject]="item.stream" [id]="item.id" playsinline='false' autoplay="true" class="vid">
       </video>
+
+      <!-- <app-h5-stream *ngFor="let item of remoteVideoStream" [isVideo]="true" [stream]="item.stream" [id]="item.id"></app-h5-stream> -->
     </div>
 
     <div id="remoteAudios">
-      <video *ngFor="let item of remoteAudioStream"  [src]="item.stream" [id]="item.id" playsinline='false' autoplay="true" class="vid">
-      </video>
+      <audio *ngFor="let item of remoteAudioStream"  [srcObject]="item.stream" [id]="item.id" playsinline='false' autoplay="true">
+      </audio>
+
+      <!-- <app-h5-stream *ngFor="let item of remoteAudioStream" [isVideo]="false" [stream]="item.stream" [id]="item.id"></app-h5-stream> -->
     </div>
 
   </div>

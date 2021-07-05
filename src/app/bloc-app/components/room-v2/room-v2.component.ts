@@ -4,14 +4,14 @@
  * @Author: icxl
  * @Date: 2021-07-03 17:30:03
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-03 20:15:05
+ * @LastEditTime: 2021-07-05 17:02:53
  */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonHelp } from '../../common/common-help';
 import { KeyValue, stream } from '../../models/types';
 import * as io from 'socket.io-client';
-import { RoomClientV2, _EVENTSV2 } from '../../common/room-client-v2';
+import { RoomClientV2, _EVENTSV2, mediaTypeV2 } from '../../common/room-client-v2';
 @Component({
   selector: 'app-room-v2',
   templateUrl: './room-v2.component.html',
@@ -42,11 +42,11 @@ export class RoomV2Component implements OnInit {
 
 
   //视频流
-  localStream: stream;
+  localStreams: stream[] = [];
   //远程音频流
-  remoteAudioStream: stream[];
+  remoteAudioStream: stream[] = [];
   //远程视频流
-  remoteVideoStream: stream[];
+  remoteVideoStream: stream[] = [];
 
 
 
@@ -63,9 +63,40 @@ export class RoomV2Component implements OnInit {
       document.title = '当前用户名：' + this.name;
     });
   }
+  ngAfterViewChecked(): void {
+  }
+  ngAfterViewInit(): void {
 
-  produce(type) { }
-  closeProducer(type) { }
+  }
+  ngOnInit() {
+    this.initDevices();
+    this.initSocket();
+    this._mediasoupClient = this._window.mediasoupClient;
+    this.joinRoom(this.name, this.roomId);
+  }
+  produce(type) {
+    if (type == mediaTypeV2.audio) {
+      this._rc.produce(mediaTypeV2.audio, this.audioSelectValue);
+    }
+    if (type == mediaTypeV2.video) {
+      this._rc.produce(mediaTypeV2.video, this.videoSelectValue);
+    }
+    if (type == mediaTypeV2.screen) {
+      this._rc.produce(mediaTypeV2.screen);
+    }
+  }
+  closeProducer(type) {
+    if (type == mediaTypeV2.audio) {
+      this._rc.closeProducer(mediaTypeV2.audio);
+    }
+    if (type == mediaTypeV2.video) {
+      this._rc.closeProducer(mediaTypeV2.video);
+    }
+    if (type == mediaTypeV2.screen) {
+      this._rc.closeProducer(mediaTypeV2.screen);
+    }
+  }
+
   initDevices() {
     navigator.mediaDevices.enumerateDevices().then(devices => {
       devices.forEach(device => {
@@ -80,15 +111,16 @@ export class RoomV2Component implements OnInit {
       this.audioSelectValue = this.audioSelects[0].value;
       this.videoSelectValue = this.videoSelects[0].value;
 
-      CommonHelp.timingCall(x => {
-        console.log(this.audioSelectValue);
-        console.log(this.videoSelectValue);
-        console.log(this.videoSelects);
-        console.log(this.audioSelects);
-      }, 3);
+      // CommonHelp.timingCall(x => {
+      //   console.log(this.audioSelectValue);
+      //   console.log(this.videoSelectValue);
+      //   console.log(this.videoSelects);
+      //   console.log(this.audioSelects);
+      // }, 3);
     }
     )
   }
+
   public initSocket() {
     this._socket = io('https://localhost:3016');
     let socket = this._socket;
@@ -114,6 +146,22 @@ export class RoomV2Component implements OnInit {
       this.addListeners();
     }
   }
+  removeRemoteStream(id) {
+    let elem: any = document.getElementById(id);
+    elem.srcObject.getTracks().forEach(function (track) {
+      track.stop()
+    })
+    this.remoteAudioStream = this.remoteAudioStream.filter(x => x.id != id);
+    this.remoteVideoStream = this.remoteVideoStream.filter(x => x.id != id);
+  }
+  removeLocalStream(producer) {
+    let elem: any = document.getElementById(producer.id);
+    elem.srcObject.getTracks().forEach(function (track) {
+      track.stop()
+    })
+    this.localStreams = this.localStreams.filter(x => x.id != producer.id);
+  }
+  
   addListeners() {
     let rc = this._rc;
     rc.on(_EVENTSV2.startScreen, () => {
@@ -144,22 +192,32 @@ export class RoomV2Component implements OnInit {
       this.if_startVideo = true;
     })
     rc.on(_EVENTSV2.exitRoom, () => {
+      debugger;
+      let a = 1;
+    })
+
+    rc.on(_EVENTSV2.removeConsumer, ({ consumer }) => {
+      this.removeRemoteStream(consumer.id);
+    })
+    rc.on(_EVENTSV2.newConsumer, ({ consumer, stream, isVideo }) => {
+      if (isVideo) {
+        this.remoteVideoStream = [...this.remoteVideoStream, { id: consumer.id, stream: stream }];
+      } else {
+        this.remoteAudioStream = [...this.remoteAudioStream, { id: consumer.id, stream: stream }];
+      }
 
     })
 
-    rc.on(_EVENTSV2.removeConsumer,(id)=>{
-      
+    rc.on(_EVENTSV2.removeProducer, ({ producer }) => {
+      this.removeLocalStream(producer);
     })
-  }
-  
-  ngOnInit() {
-    this.initDevices();
-    this.initSocket();
-    this._mediasoupClient = this._window.mediasoupClient;
+
+    rc.on(_EVENTSV2.newProducer, ({ producer, stream }) => {
+      this.localStreams = [...this.localStreams, { id: producer.id, stream: stream }];
+    })
 
 
   }
-  ngAfterViewInit(): void {
 
-  }
+
 }
