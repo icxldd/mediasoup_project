@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-03 17:30:03
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-05 17:02:53
+ * @LastEditTime: 2021-07-06 20:07:00
  */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
@@ -192,7 +192,6 @@ export class RoomV2Component implements OnInit {
       this.if_startVideo = true;
     })
     rc.on(_EVENTSV2.exitRoom, () => {
-      debugger;
       let a = 1;
     })
 
