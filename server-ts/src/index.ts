@@ -5,7 +5,6 @@ const https = require('httpolyglot')
 const fs = require('fs')
 
 import config from './config';
-// const path = require('path')
 import * as path from 'path';
 import { Peer } from './core/peer';
 import { Room } from './core/room';
@@ -199,7 +198,7 @@ io.on('connection', (socket: any) => {
         producer_id
     }:any) => {
         console.log(`---producer close--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id).getPeers().get(socket.id).name}`)
-        roomList.get(socket.room_id).closeProducer(socket.id, producer_id)
+        roomList.get(socket.room_id)?.closeProducer(socket.id, producer_id)
     })
 
     socket.on('exitRoom', async (_:any, callback:any) => {

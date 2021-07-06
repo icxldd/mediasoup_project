@@ -30,7 +30,6 @@
     "express": "^4.15.2",
     "faker": "^4.1.0",
     "lodash": "^4.17.15",
-    "mediasoup-client": "^3.6.35",
     "moment": "^2.27.0",
     "ng-zorro-antd": "~9.1.0",
     "query-string": "^6.12.1",
@@ -39,7 +38,8 @@
     "subsink": "^1.0.1",
     "tslib": "^1.10.0",
     "uuid": "^8.1.0",
-    "zone.js": "~0.10.2"
+    "zone.js": "~0.10.2",
+    "mediasoup-client": "^3.6.36"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.900.3",
