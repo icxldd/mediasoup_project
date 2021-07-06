@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-06 09:53:00
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-06 09:54:57
+ * @LastEditTime: 2021-07-06 10:12:32
  */
 const express = require('express')
 
@@ -101,6 +101,7 @@ io.on('connection', socket => {
       }
   })
 
+  
   socket.on('join', ({
       room_id,
       name
