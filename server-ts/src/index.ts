@@ -37,7 +37,7 @@ let nextMediasoupWorkerIdx = 0
 
 
 
-let roomList = new Map();
+let roomList = new Map<string, Room>();
 
 (async () => {
     await createWorkers()
@@ -71,7 +71,7 @@ async function createWorkers() {
 }
 
 io.on('connection', (socket: any) => {
-    socket.on('createRoom', async ({ room_id }:any, callback: any) => {
+    socket.on('createRoom', async ({ room_id }: any, callback: any) => {
         if (roomList.has(room_id)) {
             callback('already exists')
         } else {
@@ -86,7 +86,7 @@ io.on('connection', (socket: any) => {
     socket.on('join', ({
         room_id,
         name
-    }:any, cb:any) => {
+    }: any, cb: any) => {
 
         console.log('---user joined--- \"' + room_id + '\": ' + name)
         if (!roomList.has(room_id)) {
@@ -94,25 +94,25 @@ io.on('connection', (socket: any) => {
                 error: 'room does not exist'
             })
         }
-        roomList.get(room_id).addPeer(new Peer(socket.id, name))
+        roomList.get(room_id)?.addPeer(new Peer(socket.id, name))
         socket.room_id = room_id
 
-        cb(roomList.get(room_id).toJson())
+        cb(roomList.get(room_id)?.toJson())
     })
 
     socket.on('getProducers', () => {
-        console.log(`---get producers--- name:${roomList.get(socket.room_id).getPeers().get(socket.id).name}`)
+        console.log(`---get producers--- name:${roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
         // send all the current producer to newly joined member
         if (!roomList.has(socket.room_id)) return
-        let producerList = roomList.get(socket.room_id).getProducerListForPeer(socket.id)
+        let producerList = roomList.get(socket.room_id)?.getProducerListForPeer(socket.id)
 
         socket.emit('newProducers', producerList)
     })
 
-    socket.on('getRouterRtpCapabilities', (_:any, callback:any) => {
-        console.log(`---get RouterRtpCapabilities--- name: ${roomList.get(socket.room_id).getPeers().get(socket.id).name}`)
+    socket.on('getRouterRtpCapabilities', (_: any, callback: any) => {
+        console.log(`---get RouterRtpCapabilities--- name: ${roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
         try {
-            callback(roomList.get(socket.room_id).getRtpCapabilities());
+            callback(roomList.get(socket.room_id)?.getRtpCapabilities());
         } catch (e) {
             callback({
                 error: e.message
@@ -121,12 +121,12 @@ io.on('connection', (socket: any) => {
 
     });
 
-    socket.on('createWebRtcTransport', async (_:any, callback:any) => {
-        console.log(`---create webrtc transport--- name: ${roomList.get(socket.room_id).getPeers().get(socket.id).name}`)
+    socket.on('createWebRtcTransport', async (_: any, callback: any) => {
+        console.log(`---create webrtc transport--- name: ${roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
         try {
             const {
                 params
-            } = await roomList.get(socket.room_id).createWebRtcTransport(socket.id);
+            }: any = await roomList.get(socket.room_id)?.createWebRtcTransport(socket.id);
 
             callback(params);
         } catch (err) {
@@ -140,11 +140,11 @@ io.on('connection', (socket: any) => {
     socket.on('connectTransport', async ({
         transport_id,
         dtlsParameters
-    }:any, callback:any) => {
+    }: any, callback: any) => {
 
-        console.log(`---connect transport--- name: ${roomList.get(socket.room_id).getPeers().get(socket.id).name}`)
+        console.log(`---connect transport--- name: ${roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
         if (!roomList.has(socket.room_id)) return
-        await roomList.get(socket.room_id).connectPeerTransport(socket.id, transport_id, dtlsParameters)
+        await roomList.get(socket.room_id)?.connectPeerTransport(socket.id, transport_id, dtlsParameters)
 
         callback('success')
     })
@@ -153,14 +153,14 @@ io.on('connection', (socket: any) => {
         kind,
         rtpParameters,
         producerTransportId
-    }:any, callback:any) => {
+    }: any, callback: any) => {
 
         if (!roomList.has(socket.room_id)) {
             return callback({ error: 'not is a room' })
         }
 
-        let producer_id = await roomList.get(socket.room_id).produce(socket.id, producerTransportId, rtpParameters, kind)
-        console.log(`---produce--- type: ${kind} name: ${roomList.get(socket.room_id).getPeers().get(socket.id).name} id: ${producer_id}`)
+        let producer_id = await roomList.get(socket.room_id)?.produce(socket.id, producerTransportId, rtpParameters, kind)
+        console.log(`---produce--- type: ${kind} name: ${roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name} id: ${producer_id}`)
         callback({
             producer_id
         })
@@ -170,39 +170,39 @@ io.on('connection', (socket: any) => {
         consumerTransportId,
         producerId,
         rtpCapabilities
-    }:any, callback:any) => {
+    }: any, callback: any) => {
         //TODO null handling
-        let params = await roomList.get(socket.room_id).consume(socket.id, consumerTransportId, producerId, rtpCapabilities)
+        let params = await roomList.get(socket.room_id)?.consume(socket.id, consumerTransportId, producerId, rtpCapabilities)
 
-        console.log(`---consuming--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id).getPeers().get(socket.id).name} prod_id:${producerId} consumer_id:${params.id}`)
+        console.log(`---consuming--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name} prod_id:${producerId} consumer_id:${params.id}`)
         callback(params)
     })
 
-    socket.on('resume', async (data:any, callback:any) => {
+    socket.on('resume', async (data: any, callback: any) => {
 
         // await consumer.resume();
         callback();
     });
 
-    socket.on('getMyRoomInfo', (_:any, cb:any) => {
-        cb(roomList.get(socket.room_id).toJson())
+    socket.on('getMyRoomInfo', (_: any, cb: any) => {
+        cb(roomList.get(socket.room_id)?.toJson())
     })
 
     socket.on('disconnect', () => {
-        console.log(`---disconnect--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id).getPeers().get(socket.id).name}`)
+        console.log(`---disconnect--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
         if (!socket.room_id) return
-        roomList.get(socket.room_id).removePeer(socket.id)
+        roomList.get(socket.room_id)?.removePeer(socket.id)
     })
 
     socket.on('producerClosed', ({
         producer_id
-    }:any) => {
-        console.log(`---producer close--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id).getPeers().get(socket.id).name}`)
+    }: any) => {
+        console.log(`---producer close--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
         roomList.get(socket.room_id)?.closeProducer(socket.id, producer_id)
     })
 
-    socket.on('exitRoom', async (_:any, callback:any) => {
-        console.log(`---exit room--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id).getPeers().get(socket.id).name}`)
+    socket.on('exitRoom', async (_: any, callback: any) => {
+        console.log(`---exit room--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
         if (!roomList.has(socket.room_id)) {
             callback({
                 error: 'not currently in a room'
@@ -210,8 +210,8 @@ io.on('connection', (socket: any) => {
             return
         }
         // close transports
-        await roomList.get(socket.room_id).removePeer(socket.id)
-        if (roomList.get(socket.room_id).getPeers().size === 0) {
+        await roomList.get(socket.room_id)?.removePeer(socket.id)
+        if (roomList.get(socket.room_id)?.getPeers().size === 0) {
             roomList.delete(socket.room_id)
         }
 
@@ -226,12 +226,12 @@ io.on('connection', (socket: any) => {
 
 
 
-function PrintPeerInfo(peer:any) {
+function PrintPeerInfo(peer: any) {
     const { name, consumers, producers, transports } = peer;
 
     console.log(`name:${name},consumers count:${consumers.size},producers count:${producers.size},transports count:${transports.size}`);
 }
-function parseMapToValue(map:any) { return [...map.values()]; }
+function parseMapToValue(map: any) { return [...map.values()]; }
 function room() {
     for (let room of parseMapToValue(roomList)) {
         let peers = parseMapToValue(room.peers);
