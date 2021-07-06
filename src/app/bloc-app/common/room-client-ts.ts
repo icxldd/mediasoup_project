@@ -56,7 +56,7 @@ export class RoomClientTS {
       }
     });
 
-    this._socket.on('disconnect', function () {
+    this._socket.on('disconnect',  () => {
       this.exit(true)
     })
   }
