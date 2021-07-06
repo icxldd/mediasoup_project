@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-01 16:56:19
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-03 18:50:23
+ * @LastEditTime: 2021-07-06 15:14:08
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -16,6 +16,7 @@ import { RoomComponent } from './components/room/room.component';
 import { SocketRoomSignallingService } from './services/socket-room-signalling.service';
 import { FormsModule } from '@angular/forms';
 import { RoomV2Component } from './components/room-v2/room-v2.component';
+import { RoomTsComponent } from './components/room-ts/room-ts.component';
 @NgModule({
   imports: [
     CommonModule,
@@ -24,7 +25,7 @@ import { RoomV2Component } from './components/room-v2/room-v2.component';
     FormsModule
   ],
   declarations: [BlocAppComponent,
-    TestPageComponent, RoomComponent,RoomV2Component
+    TestPageComponent, RoomComponent,RoomV2Component,RoomTsComponent
   ],
   providers:[
     SocketRoomSignallingService
