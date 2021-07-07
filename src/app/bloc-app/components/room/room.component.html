@@ -1,8 +1,17 @@
+<!--
+ * @Descripttion: 
+ * @version: 1.0
+ * @Author: icxl
+ * @Date: 2021-07-03 22:15:24
+ * @LastEditors: icxl
+ * @LastEditTime: 2021-07-07 17:21:56
+-->
 <div>
   <div id="selfDevices">
     <h1>自己名称：{{name}}</h1>
   </div>
 
+  
 
 
   <div id="control" class="hidden">
@@ -24,6 +33,7 @@
       (click)="_io._rc.produce('videoType', videoSelect.value)">video</button>
     <button id='stopVideoButton' class='hidden' (click)="_io._rc.closeProducer('videoType')">close
       video</button>
+      
 
 
     <button id='startScreenButton' class='hidden' (click)="_io._rc.produce('screenType')">screen</button>

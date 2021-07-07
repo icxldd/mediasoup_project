@@ -68,6 +68,7 @@ import { NzTreeModule } from 'ng-zorro-antd/tree';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { HeadImgComponent } from './components/head-img/head-img.component';
 
 
 
@@ -146,9 +147,10 @@ const NZMODULES = [
     ...NZMODULES,
     CommonModule
   ],
-  declarations: [],
+  declarations: [HeadImgComponent],
   exports:[
     ...NZMODULES,
+    HeadImgComponent
   ]
 })
 export class ShareUiModule { }

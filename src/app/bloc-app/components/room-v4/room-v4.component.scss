@@ -1,0 +1,27 @@
+:host{
+  .container{
+    background-image: url('/assets/images/1.jpg');
+    overflow: hidden;
+    min-height: 100vh;
+    min-width: 100wh;
+    padding: 20% 20%;
+
+  }
+  .headImages{
+    // border: 1px solid red;
+    width: 100%;
+    height: 18.75rem;
+  }
+  img{
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 50%;
+  }
+  
+  .empty{
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 50%;
+    border: 1px solid #888;
+  }
+}

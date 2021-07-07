@@ -1,0 +1,15 @@
+<!--
+ * @Descripttion: 
+ * @version: 1.0
+ * @Author: icxl
+ * @Date: 2021-07-07 18:22:20
+ * @LastEditors: icxl
+ * @LastEditTime: 2021-07-07 21:54:11
+-->
+<div class="container">
+
+  <div class="empty" *ngIf="value==null">
+    <span>空</span>
+  </div>
+  <img [src]="url" [class]="isMe?'me':''" *ngIf="value!=null" />
+</div>

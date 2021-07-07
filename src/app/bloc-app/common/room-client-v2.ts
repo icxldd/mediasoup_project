@@ -1,11 +1,17 @@
-import { RoomLog } from "./room-log";
-
-export const mediaType = {
+/*
+ * @Descripttion: 
+ * @version: 1.0
+ * @Author: icxl
+ * @Date: 2021-07-03 20:03:48
+ * @LastEditors: icxl
+ * @LastEditTime: 2021-07-05 17:26:53
+ */
+export const mediaTypeV2 = {
   audio: 'audioType',
   video: 'videoType',
   screen: 'screenType'
 }
-export const _EVENTS = {
+export const _EVENTSV2 = {
   exitRoom: 'exitRoom',
   openRoom: 'openRoom',
   startVideo: 'startVideo',
@@ -13,37 +19,36 @@ export const _EVENTS = {
   startAudio: 'startAudio',
   stopAudio: 'stopAudio',
   startScreen: 'startScreen',
-  stopScreen: 'stopScreen'
+  stopScreen: 'stopScreen',
+
+  removeConsumer: 'removeConsumer',
+  newConsumer: 'newConsumer',
+  removeProducer: 'removeProducer',
+  newProducer: 'newProducer',
+
 }
 
-export class RoomClient {
+export class RoomClientV2 {
 
 
-  _localMediaEl;
-  _remoteVideoEl;
-  _remoteAudioEl;
   _mediasoupClient;
   _socket;
   _room_id;
   _name;
   _successCallback;
-  _consumers;
-  _producers;
+  _consumers: Map<any, any>;
+  _producers: Map<any, any>;
   _device;
   _producerTransport;
   _consumerTransport;
   _eventListeners;
   _producerLabel;
   _navigator: any = navigator;
-  constructor(localMediaEl, remoteVideoEl, remoteAudioEl, mediasoupClient, socket, room_id, name, successCallback) {
-    this._localMediaEl = localMediaEl;
-    this._remoteVideoEl = remoteVideoEl;
-    this._remoteAudioEl = remoteAudioEl;
+  constructor(mediasoupClient, socket, room_id, name) {
     this._mediasoupClient = mediasoupClient;
     this._socket = socket;
     this._room_id = room_id;
     this._name = name;
-    this._successCallback = successCallback;
     this._consumers = new Map()
     this._producers = new Map()
     this._producerLabel = new Map()
@@ -51,27 +56,36 @@ export class RoomClient {
     this._producerTransport = null;
     this._consumerTransport = null;
     this._eventListeners = new Map()
-    Object.keys(_EVENTS).forEach(function (evt) {
+    Object.keys(_EVENTSV2).forEach(function (evt) {
       this._eventListeners.set(evt, [])
     }.bind(this))
     this.createRoom(room_id).then(async function () {
       await this.join(name, room_id)
       this.initSockets()
-      this._successCallback();
     }.bind(this))
   }
 
 
+  initSockets() {
+    this._socket.on('consumerClosed', function ({
+      consumer_id
+    }) {
+      console.log('closing consumer:', consumer_id)
+      this.removeConsumer(this._consumers.get(consumer_id))
+    }.bind(this))
+    this._socket.on('newProducers', async function (data) {
+      console.log('new producers', data)
+      for (let {
+        producer_id
+      } of data) {
+        await this.consume(producer_id)
+      }
+    }.bind(this))
 
-
-  async createRoom(room_id) {
-    await this._socket.request('createRoom', {
-      room_id
-    }).catch(err => {
-      console.log(err)
-    })
+    this._socket.on('disconnect', function () {
+      this.exit(true)
+    }.bind(this))
   }
-
 
   async join(name, room_id) {
     this._socket.request('join', {
@@ -89,8 +103,6 @@ export class RoomClient {
     })
   }
 
-
-
   async loadDevice(routerRtpCapabilities) {
     let device
     try {
@@ -107,6 +119,8 @@ export class RoomClient {
     return device
 
   }
+
+
 
   async initTransports(device) {
 
@@ -203,6 +217,7 @@ export class RoomClient {
             break;
 
           case 'connected':
+            
             //remoteVideo.srcObject = await stream;
             //await socket.request('resume');
             break;
@@ -220,42 +235,24 @@ export class RoomClient {
   }
 
 
-
-  initSockets() {
-    this._socket.on('consumerClosed', function ({
-      consumer_id
-    }) {
-      console.log('closing consumer:', consumer_id)
-      this.removeConsumer(consumer_id)
-    }.bind(this))
-
-    /**
-     * data: [ {
-     *  producer_id:
-     *  producer_socket_id:
-     * }]
-     */
-    this._socket.on('newProducers', async function (data) {
-      console.log('new producers', data)
-      for (let {
-        producer_id
-      } of data) {
-        await this.consume(producer_id)
-      }
-    }.bind(this))
-
-    this._socket.on('disconnect', function () {
-      this.exit(true)
-    }.bind(this))
-
-
+  async createRoom(room_id) {
+    await this._socket.request('createRoom', {
+      room_id
+    }).catch(err => {
+      console.log(err)
+    })
   }
+
+
+
+
+
   async produce(type, deviceId = null) {
     let mediaConstraints = {}
     let audio = false
     let screen = false
     switch (type) {
-      case mediaType.audio:
+      case mediaTypeV2.audio:
         mediaConstraints = {
           audio: {
             deviceId: deviceId
@@ -264,7 +261,7 @@ export class RoomClient {
         }
         audio = true
         break
-      case mediaType.video:
+      case mediaTypeV2.video:
         mediaConstraints = {
           audio: false,
           video: {
@@ -283,7 +280,7 @@ export class RoomClient {
           }
         }
         break
-      case mediaType.screen:
+      case mediaTypeV2.screen:
         mediaConstraints = false
         screen = true
         break;
@@ -335,19 +332,7 @@ export class RoomClient {
       let producer = await this._producerTransport.produce(params)
 
       console.log('producer', producer)
-
-      this._producers.set(producer.id, producer)
-
-      let elem
-      if (!audio) {
-        elem = document.createElement('video')
-        elem.srcObject = stream
-        elem.id = producer.id
-        elem.playsinline = false
-        elem.autoplay = true
-        elem.className = "vid"
-        this._localMediaEl.appendChild(elem)
-      }
+      this.newProducer(producer, stream,audio);
 
       producer.on('trackended', () => {
         this.closeProducer(type)
@@ -355,39 +340,25 @@ export class RoomClient {
 
       producer.on('transportclose', () => {
         console.log('producer transport close')
-        if (!audio) {
-          elem.srcObject.getTracks().forEach(function (track) {
-            track.stop()
-          })
-          elem.parentNode.removeChild(elem)
-        }
-        this._producers.delete(producer.id)
-
+        this.removeProducer(producer, audio);
       })
 
       producer.on('close', () => {
         console.log('closing producer')
-        if (!audio) {
-          elem.srcObject.getTracks().forEach(function (track) {
-            track.stop()
-          })
-          elem.parentNode.removeChild(elem)
-        }
-        this._producers.delete(producer.id)
-
+        this.removeProducer(producer, audio);
       })
 
       this._producerLabel.set(type, producer.id)
 
       switch (type) {
-        case mediaType.audio:
-          this.event(_EVENTS.startAudio)
+        case mediaTypeV2.audio:
+          this.event(_EVENTSV2.startAudio)
           break
-        case mediaType.video:
-          this.event(_EVENTS.startVideo)
+        case mediaTypeV2.video:
+          this.event(_EVENTSV2.startVideo)
           break
-        case mediaType.screen:
-          this.event(_EVENTS.startScreen)
+        case mediaTypeV2.screen:
+          this.event(_EVENTSV2.startScreen)
           break;
         default:
           return
@@ -397,7 +368,38 @@ export class RoomClient {
       console.log(err)
     }
   }
+  closeProducer(type) {
+    if (!this._producerLabel.has(type)) {
+      console.log('there is no producer for this type ' + type)
+      return
+    }
+    let producer_id = this._producerLabel.get(type)
+    console.log(producer_id)
+    this._socket.emit('producerClosed', {
+      producer_id
+    })
 
+    this._producerLabel.delete(type)
+    let producer = this._producers.get(producer_id);
+    producer.close();
+    this.removeProducer(producer, type == mediaTypeV2.audio);
+
+    switch (type) {
+      case mediaTypeV2.audio:
+        this.event(_EVENTSV2.stopAudio)
+        break
+      case mediaTypeV2.video:
+        this.event(_EVENTSV2.stopVideo)
+        break
+      case mediaTypeV2.screen:
+        this.event(_EVENTSV2.stopScreen)
+        break;
+      default:
+        return
+        break;
+    }
+
+  }
   async getConsumeStream(producerId) {
     const {
       rtpCapabilities
@@ -429,7 +431,6 @@ export class RoomClient {
       kind
     }
   }
-
   async consume(producer_id) {
 
     //let info = await roomInfo()
@@ -439,25 +440,13 @@ export class RoomClient {
       stream,
       kind
     }) {
-
+      console.log(consumer,stream);
       this._consumers.set(consumer.id, consumer)
 
-      let elem;
       if (kind === 'video') {
-        elem = document.createElement('video')
-        elem.srcObject = stream
-        elem.id = consumer.id
-        elem.playsinline = false
-        elem.autoplay = true
-        elem.className = "vid"
-        this._remoteVideoEl.appendChild(elem)
+       this.newConsumer(consumer,stream,true);
       } else {
-        elem = document.createElement('audio')
-        elem.srcObject = stream
-        elem.id = consumer.id
-        elem.playsinline = false
-        elem.autoplay = true
-        this._remoteVideoEl.appendChild(elem)
+        this.newConsumer(consumer,stream,false);
       }
 
       consumer.on('trackended', function () {
@@ -472,107 +461,51 @@ export class RoomClient {
     }.bind(this))
   }
 
-  closeProducer(type) {
-    if (!this._producerLabel.has(type)) {
-      console.log('there is no producer for this type ' + type)
-      return
-    }
-    let producer_id = this._producerLabel.get(type)
-    console.log(producer_id)
-    this._socket.emit('producerClosed', {
-      producer_id
-    })
-    this._producers.get(producer_id).close()
-    this._producers.delete(producer_id)
-    this._producerLabel.delete(type)
-
-    if (type !== mediaType.audio) {
-      let elem: any = document.getElementById(producer_id)
-      elem.srcObject.getTracks().forEach(function (track) {
-        track.stop()
-      })
-      elem.parentNode.removeChild(elem)
-    }
-
-    switch (type) {
-      case mediaType.audio:
-        this.event(_EVENTS.stopAudio)
-        break
-      case mediaType.video:
-        this.event(_EVENTS.stopVideo)
-        break
-      case mediaType.screen:
-        this.event(_EVENTS.stopScreen)
-        break;
-      default:
-        return
-        break;
-    }
-
-  }
-
-
-  pauseProducer(type) {
-    if (!this._producerLabel.has(type)) {
-      console.log('there is no producer for this type ' + type)
-      return
-    }
-    let producer_id = this._producerLabel.get(type)
-    this._producers.get(producer_id).pause()
-
-  }
-
-  resumeProducer(type) {
-    if (!this._producerLabel.has(type)) {
-      console.log('there is no producer for this type ' + type)
-      return
-    }
-    let producer_id = this._producerLabel.get(type)
-    this._producers.get(producer_id).resume()
-
-  }
-
-  removeConsumer(consumer_id) {
-    let elem: any = document.getElementById(consumer_id)
-    elem.srcObject.getTracks().forEach(function (track) {
-      track.stop()
-    })
-    elem.parentNode.removeChild(elem)
-
-    this._consumers.delete(consumer_id)
-  }
-
 
   exit(offline = false) {
+    
 
     let clean = function () {
-      this._isOpen = false
-      this._consumerTransport.close()
-      this._producerTransport.close()
-      this._socket.off('disconnect')
-      this._socket.off('newProducers')
-      this._socket.off('consumerClosed')
+        this._consumerTransport.close()
+        this._producerTransport.close()
+        this._socket.off('disconnect')
+        this._socket.off('newProducers')
+        this._socket.off('consumerClosed')
     }.bind(this)
 
     if (!offline) {
-      this._socket.request('exitRoom').then(e => console.log(e)).catch(e => console.warn(e)).finally(function () {
-        clean()
-      }.bind(this))
+        this._socket.request('exitRoom').then(e => console.log(e)).catch(e => console.warn(e)).finally(function () {
+            clean()
+        }.bind(this))
     } else {
-      clean()
+        clean()
     }
-    this.event(_EVENTS.exitRoom)
+
+    this.event(_EVENTSV2.exitRoom)
+
+}
+
+  removeConsumer(consumer) {
+    this.event_arg(_EVENTSV2.removeConsumer, {consumer});
+    this._consumers.delete(consumer.id)
+  }
+  newProducer(producer, stream,audio) {
+    this._producers.set(producer.id, producer);
+    if (stream && !audio) {
+      this.event_arg(_EVENTSV2.newProducer, { producer: producer, stream: stream });
+    }
+  }
+  removeProducer(producer, isAudio) {
+    this._producers.delete(producer.id);
+    if (!isAudio) {
+      this.event_arg(_EVENTSV2.removeProducer, {producer});
+    }
+  }
+  newConsumer(consumer, stream, isVideo) {
+    this._consumers.set(consumer.id, consumer)
+    this.event_arg(_EVENTSV2.newConsumer, {consumer,stream, isVideo});
   }
 
-
-  async roomInfo() {
-    let info = await this._socket.request('getMyRoomInfo')
-    return info
-  }
-
-  static get mediaType() {
-    return mediaType
-  }
 
   event(evt) {
     if (this._eventListeners.has(evt)) {
@@ -580,11 +513,13 @@ export class RoomClient {
     }
   }
 
-  on(evt, callback) {
-    this._eventListeners.get(evt).push(callback)
+  event_arg(evt, arg) {
+    if (this._eventListeners.has(evt)) {
+      this._eventListeners.get(evt).forEach(callback => callback(arg))
+    }
   }
 
-  static get EVENTS() {
-    return _EVENTS
+  on(evt, callback) {
+    this._eventListeners.get(evt).push(callback)
   }
 }
