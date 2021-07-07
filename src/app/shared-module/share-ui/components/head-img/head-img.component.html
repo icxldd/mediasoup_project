@@ -1,3 +1,15 @@
+<!--
+ * @Descripttion: 
+ * @version: 1.0
+ * @Author: icxl
+ * @Date: 2021-07-07 18:22:20
+ * @LastEditors: icxl
+ * @LastEditTime: 2021-07-07 19:07:20
+-->
 <div class="container">
 
+  <div class="empty" *ngIf="value==null">
+    <span>空</span>
+  </div>
+  <img [src]="url" *ngIf="value!=null" />
 </div>

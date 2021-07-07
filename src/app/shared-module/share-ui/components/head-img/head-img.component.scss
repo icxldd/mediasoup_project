@@ -1,6 +1,26 @@
-:host{
-  .container{
+:host {
+  .container {
     display: inline-block;
-    
+  }
+
+  img {
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 50%;
+  }
+
+  .empty {
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 50%;
+    border: 1px solid #888;
+    span {
+      position: relative;
+      left: 20px;
+      top: 12px;
+      font-size: 25px;
+      font-family: cursive;
+      color: white;
+    }
   }
 }
