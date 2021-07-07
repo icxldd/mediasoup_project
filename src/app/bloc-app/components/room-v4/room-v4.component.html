@@ -4,21 +4,21 @@
 
     <nz-row style="margin-bottom: 1.5625rem;">
       <nz-col nzSpan="12" nzPush="2">
-        <app-head-img value="1"></app-head-img>
+        <app-head-img [isMe]="true" value="1"></app-head-img>
       </nz-col>
       <nz-col nzSpan="12" nzPush="3">
-        <app-head-img value="2"></app-head-img>
+        <app-head-img [isMe]="true" value="2"></app-head-img>
         <!-- <app-head-img [value]="null"></app-head-img> -->
       </nz-col>
     </nz-row>
 
     <nz-row>
       <nz-col nzSpan="12" nzPush="2">
-        <!-- <app-head-img value="3"></app-head-img> -->
-        <app-head-img [value]="null"></app-head-img>
+        <app-head-img [isMe]="true" value="3"></app-head-img>
+        <!-- <app-head-img [value]="null"></app-head-img> -->
       </nz-col>
       <nz-col nzSpan="12" nzPush="3">
-        <app-head-img [value]="null"></app-head-img>
+        <app-head-img [isMe]="true" [value]="null"></app-head-img>
       </nz-col>
     </nz-row>
   </div>
