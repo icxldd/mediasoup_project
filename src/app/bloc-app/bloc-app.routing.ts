@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-01 16:56:19
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-06 15:14:22
+ * @LastEditTime: 2021-07-07 17:38:47
  */
 import { Routes, RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
@@ -12,6 +12,7 @@ import { TestPageComponent } from './components/test-page/test-page.component';
 import { RoomComponent } from './components/room/room.component';
 import { RoomV2Component } from './components/room-v2/room-v2.component';
 import { RoomTsComponent } from './components/room-ts/room-ts.component';
+import { RoomV4Component } from './components/room-v4/room-v4.component';
 
 
 const routes: Routes = [
@@ -30,6 +31,10 @@ const routes: Routes = [
   {
     path: 'room-ts/:roomId/:name',
     component: RoomTsComponent
+  },
+  {
+    path: 'room-v4/:roomId/:name',
+    component: RoomV4Component
   },
   { path: '', pathMatch: 'full', redirectTo: 'room' }
 ];
