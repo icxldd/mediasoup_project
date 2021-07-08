@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-03 20:03:48
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-05 17:26:53
+ * @LastEditTime: 2021-07-08 12:27:21
  */
 export const mediaTypeV2 = {
   audio: 'audioType',
@@ -25,7 +25,9 @@ export const _EVENTSV2 = {
   newConsumer: 'newConsumer',
   removeProducer: 'removeProducer',
   newProducer: 'newProducer',
-
+  roomUpdate: 'roomUpdate',
+  selfUpdate: 'selfUpdate',
+  canStart:'canStart'
 }
 
 export class RoomClientV2 {

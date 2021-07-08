@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-06 16:37:36
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-08 10:24:36
+ * @LastEditTime: 2021-07-08 11:56:09
  */
 const express = require('express')
 
@@ -25,6 +25,7 @@ import {
     getSupportedRtpCapabilities,
     parseScalabilityMode
 } from 'mediasoup'
+import { DefaultData } from './core/default-data';
 
 const options = {
     key: fs.readFileSync(path.join(__dirname, config.sslKey), 'utf-8'),
@@ -92,20 +93,22 @@ io.on('connection', (socket: any) => {
 
 
     socket.on('join', ({
-        room_id,
-        name
+        room_id
     }: any, cb: any) => {
-
-        console.log('---user joined--- \"' + room_id + '\": ' + name)
         if (!roomList.has(room_id)) {
             return cb({
                 error: 'room does not exist'
             })
         }
-        roomList.get(room_id)?.addPeer(new Peer(socket.id, name))
+        let room = <Room>roomList.get(room_id);
+        let v = [...room.peers.values()];
+        let name = DefaultData.getName(v);
+        let order = DefaultData.getOrder(v);
+        console.log('---user joined--- \"' + room_id + '\": ' + name)
+        roomList.get(room_id)?.addPeer(new Peer(socket.id, name, order))
         socket.room_id = room_id
-
-        cb(roomList.get(room_id)?.toJson())
+        room?.broadCastAll('roomUpdate', roomList.get(socket.room_id)?.toJson())
+        cb(roomList.get(room_id)?.toJson_peer(socket.id))
     })
 
     socket.on('getProducers', () => {
@@ -204,6 +207,9 @@ io.on('connection', (socket: any) => {
         console.log(`---disconnect--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
         if (!socket.room_id) return
         roomList.get(socket.room_id)?.removePeer(socket.id)
+        let room = roomList.get(socket.room_id);
+        room?.broadCast(socket.id,'roomUpdate', roomList.get(socket.room_id)?.toJson())
+        // socket.emit('roomUpdate', roomList.get(socket.room_id)?.toJson())
     })
 
     socket.on('producerClosed', ({
@@ -226,7 +232,8 @@ io.on('connection', (socket: any) => {
         if (roomList.get(socket.room_id)?.getPeers().size === 0) {
             roomList.delete(socket.room_id)
         }
-
+        let room = roomList.get(socket.room_id);
+        room?.broadCast(socket.id,'roomUpdate', roomList.get(socket.room_id)?.toJson())
         socket.room_id = null
 
 

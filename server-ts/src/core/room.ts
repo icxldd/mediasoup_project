@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-06 16:55:18
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-06 18:32:02
+ * @LastEditTime: 2021-07-08 10:53:15
  */
 import { types as mediasoupTypes } from "mediasoup";
 import {
@@ -158,6 +158,11 @@ export class Room {
       this.send(otherID, name, data)
     }
   }
+  broadCastAll(name: string, data: any) {
+    for (let otherID of Array.from(this.peers.keys())) {
+      this.send(otherID, name, data)
+    }
+  }
 
   send(socket_id: string, name: string, data: any) {
     this.io.to(socket_id).emit(name, data)
@@ -176,6 +181,15 @@ export class Room {
     }
   }
 
+
+
+  toJson_peer(peerId:string) {
+    return {
+      id: this.id,
+      peers: JSON.stringify([...this.peers]),
+      peer:JSON.stringify(this.peers.get(peerId))
+    }
+  }
 }
 
 

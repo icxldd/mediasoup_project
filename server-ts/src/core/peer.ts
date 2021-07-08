@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-06 16:48:47
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-06 20:15:01
+ * @LastEditTime: 2021-07-08 11:11:05
  */
 import { types as mediasoupTypes } from "mediasoup";
 import {
@@ -20,12 +20,14 @@ export class Peer {
 
   id: string;
   name: string;
+  order: number;
   transports: Map<string, mediasoupTypes.Transport>;
   consumers: Map<string, mediasoupTypes.Consumer>;
   producers: Map<string, mediasoupTypes.Producer>;
-  constructor(socket_id: string, name: string) {
+  constructor(socket_id: string, name: string, order: number) {
     this.id = socket_id
     this.name = name
+    this.order = order;
     this.transports = new Map<string, mediasoupTypes.Transport>();
     this.consumers = new Map()
     this.producers = new Map()

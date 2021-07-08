@@ -4,7 +4,6 @@ import * as _mediasoupClient from "mediasoup-client";
 export class RoomClientV4 {
   _socket;
   _room_id;
-  _name;
   _successCallback;
   _consumers: Map<string, mediasoupTypes.Consumer>;
   _producers: Map<string, mediasoupTypes.Producer>;
@@ -14,17 +13,16 @@ export class RoomClientV4 {
   _eventListeners;
   _producerLabel: Map<string, string>;
   _navigator: any = navigator;
-  constructor(socket, room_id, name) {
+  constructor(socket, room_id) {
     this._socket = socket;
     this._room_id = room_id;
-    this._name = name;
     this._consumers = new Map()
     this._producers = new Map()
     this._producerLabel = new Map()
     this._device = null;
     this._producerTransport = null;
     this._consumerTransport = null;
-    this._eventListeners = new Map()
+    this._eventListeners = new Map();
     Object.keys(_EVENTSV2).forEach((evt) => {
       this._eventListeners.set(evt, [])
     })
@@ -32,28 +30,24 @@ export class RoomClientV4 {
     this._socket.request('getRoomInfo', {
       room_id
     }).then(async x => {
-      let roomCount = JSON.parse(x.peers).length;
       if (x == null) {
         this.createRoom(room_id).then(async () => {
-          await this.join(name, room_id)
+          await this.join(room_id)
           this.initSockets()
         })
-      }
-      if (roomCount >= 4) {
-        alert('房间人数已满');
-        return;
       } else {
-        await this.join(name, room_id)
-        this.initSockets()
+        let roomCount = JSON.parse(x.peers).length;
+        if (roomCount >= 4) {
+          alert('房间人数已满');
+          return;
+        } else {
+          await this.join(room_id)
+          this.initSockets()
+        }
       }
     }).catch(err => {
       console.log(err)
     })
-
-    // this.createRoom(room_id).then(async () => {
-    //   await this.join(name, room_id)
-    //   this.initSockets()
-    // })
   }
 
 
@@ -74,14 +68,21 @@ export class RoomClientV4 {
       }
     });
 
+
+    this._socket.on('roomUpdate', async (data) => {
+      this.event_arg(_EVENTSV2.roomUpdate, data);
+    });
+
     this._socket.on('disconnect', () => {
       this.exit(true)
     })
+
+    
+
   }
 
-  async join(name, room_id) {
+  async join(room_id) {
     this._socket.request('join', {
-      name,
       room_id
     }).then(async (e) => {
       console.log(e)
@@ -90,6 +91,9 @@ export class RoomClientV4 {
       this._device = device
       await this.initTransports(device)
       this._socket.emit('getProducers')
+      this.event_arg(_EVENTSV2.selfUpdate, JSON.parse(e.peer));
+      // this.event(_EVENTSV2.canStart);
+      // await this.produce(mediaTypeV2.audio, this.audioDeviceId);
     }).catch(e => {
       console.log(e)
     })

@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-01 16:56:19
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-08 10:35:18
+ * @LastEditTime: 2021-07-08 11:54:31
  */
 import { Routes, RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
@@ -33,7 +33,7 @@ const routes: Routes = [
     component: RoomTsComponent
   },
   {
-    path: 'room-v4/:roomId/:name',
+    path: 'room-v4/:roomId',
     component: RoomV4Component
   },
   { path: '', pathMatch: 'full', redirectTo: 'room' }

@@ -4,14 +4,19 @@
  * @Author: icxl
  * @Date: 2021-07-07 17:37:55
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-08 10:35:41
+ * @LastEditTime: 2021-07-08 12:41:11
  */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { KeyValue } from '../../models/types';
+import { KeyValue, stream } from '../../models/types';
 import * as io from 'socket.io-client';
 import { RoomClientV4 } from '../../common/room-client-v4';
-
+import { mediaTypeV2, _EVENTSV2 } from '../../common/room-client-v2';
+export interface peer {
+  id: string;
+  name: string;
+  order: number;
+}
 @Component({
   selector: 'app-room-v4',
   templateUrl: './room-v4.component.html',
@@ -28,32 +33,95 @@ export class RoomV4Component implements OnInit {
   videoSelects: KeyValue[] = [];
 
   roomId: string;
-  name:string;
   _socket: any;
   _rc: RoomClientV4;
+  current: peer;
+  peers: peer[] = [];
+  remoteAudioStream: stream[] = [];
   constructor(private route: ActivatedRoute) {
     this.route.params.subscribe(x => {
       this.roomId = x['roomId'];
-      this.name = x['name'];
       document.title = '当前房间ID：' + this.roomId;
     });
   }
 
+  getPeerByOrder(order: number) {
+    return this?.peers?.find(x => x.order == order);
+  }
 
+  getValue(getPeerByOrder: peer) {
+    return getPeerByOrder?.name;
+  }
+
+  isMe(getPeerByOrder: peer) {
+    return this?.current?.id == getPeerByOrder?.id;
+  }
+  ngAfterViewInit(): void {
+    // this._rc.produce(mediaTypeV2.audio, this.audioSelectValue);
+  }
   ngOnInit() {
     this.initDevices();
     this.initSocket();
     this.joinRoom(this.roomId);
 
-
+    setTimeout(() => {
+      this._rc.produce(mediaTypeV2.audio, this.audioSelectValue);
+    }, 2000);
   }
   joinRoom(room_id) {
     let rc = this._rc;
     if (rc) {
       console.log('already connected to a room')
     } else {
-      this._rc = new RoomClientV4(this._socket, room_id, this.name)
+      this._rc = new RoomClientV4(this._socket, room_id);
+      this.addListeners();
     }
+  }
+  removeRemoteStream(id) {
+    let elem: any = document.getElementById(id);
+    elem.srcObject.getTracks().forEach(function (track) {
+      track.stop()
+    })
+    this.remoteAudioStream = this.remoteAudioStream.filter(x => x.id != id);
+  }
+
+  addListeners() {
+    let rc = this._rc;
+
+    // rc.on(_EVENTSV2.exitRoom, () => {
+    //   let a = 1;
+    // })
+
+    rc.on(_EVENTSV2.removeConsumer, ({ consumer }) => {
+      this.removeRemoteStream(consumer.id);
+    })
+    rc.on(_EVENTSV2.newConsumer, ({ consumer, stream, isVideo }) => {
+      if (isVideo) {
+      } else {
+        this.remoteAudioStream = [...this.remoteAudioStream, { id: consumer.id, stream: stream }];
+      }
+    })
+
+    rc.on(_EVENTSV2.roomUpdate, (data) => {
+      let peers_ = JSON.parse(data.peers);
+      this.peers = peers_.map(x => x[1])
+      console.log(this.peers);
+    });
+
+
+    rc.on(_EVENTSV2.selfUpdate, (data) => {
+      this.current = data;
+      console.log("self ", this.current);
+    });
+    // rc.on(_EVENTSV2.removeProducer, ({ producer }) => {
+    //   this.removeLocalStream(producer);
+    // })
+
+    rc.on(_EVENTSV2.newProducer, ({ producer, stream }) => {
+      // this.localStreams = [...this.localStreams, { id: producer.id, stream: stream }];
+    })
+
+
   }
   public initSocket() {
     this._socket = io('https://localhost:3016');
@@ -61,7 +129,7 @@ export class RoomV4Component implements OnInit {
     socket.request = function request(type, data = {}) {
       return new Promise((resolve, reject) => {
         socket.emit(type, data, (data) => {
-          if (data != null &&  data.error) {
+          if (data != null && data.error) {
             reject(data.error)
           } else {
             resolve(data)
@@ -83,8 +151,11 @@ export class RoomV4Component implements OnInit {
       })
       this.audioSelectValue = this.audioSelects[0].value;
       this.videoSelectValue = this.videoSelects[0].value;
+
     }
-    )
+    );
+
+
   }
 
 }
