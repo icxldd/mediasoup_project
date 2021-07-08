@@ -72,12 +72,17 @@ export class RoomClientV4 {
     this._socket.on('roomUpdate', async (data) => {
       this.event_arg(_EVENTSV2.roomUpdate, data);
     });
+    this._socket.on('activeSpeaker', async (data) => {
+      this.event_arg(_EVENTSV2.activeSpeaker, data);
+      // console.log('activeSpeaker', data);
+      // this.event_arg(_EVENTSV2.roomUpdate, data);
+    });
 
     this._socket.on('disconnect', () => {
       this.exit(true)
     })
 
-    
+
 
   }
 

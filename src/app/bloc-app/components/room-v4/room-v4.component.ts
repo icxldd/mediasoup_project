@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-07 17:37:55
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-08 12:41:11
+ * @LastEditTime: 2021-07-08 13:27:21
  */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
@@ -12,10 +12,12 @@ import { KeyValue, stream } from '../../models/types';
 import * as io from 'socket.io-client';
 import { RoomClientV4 } from '../../common/room-client-v4';
 import { mediaTypeV2, _EVENTSV2 } from '../../common/room-client-v2';
+import { environment } from '@env/environment';
 export interface peer {
   id: string;
   name: string;
   order: number;
+  isSpeaker: boolean;
 }
 @Component({
   selector: 'app-room-v4',
@@ -52,7 +54,9 @@ export class RoomV4Component implements OnInit {
   getValue(getPeerByOrder: peer) {
     return getPeerByOrder?.name;
   }
-
+  getSpeaker(getPeerByOrder: peer) {
+    return getPeerByOrder?.isSpeaker;
+  }
   isMe(getPeerByOrder: peer) {
     return this?.current?.id == getPeerByOrder?.id;
   }
@@ -67,6 +71,7 @@ export class RoomV4Component implements OnInit {
     setTimeout(() => {
       this._rc.produce(mediaTypeV2.audio, this.audioSelectValue);
     }, 2000);
+
   }
   joinRoom(room_id) {
     let rc = this._rc;
@@ -113,6 +118,16 @@ export class RoomV4Component implements OnInit {
       this.current = data;
       console.log("self ", this.current);
     });
+
+    rc.on(_EVENTSV2.activeSpeaker, (data) => {
+      console.log(data);
+      let id = data.peerId;
+      let peer = this.peers.find(x => x.id == id);
+      peer.isSpeaker = true;
+      setTimeout(() => {
+        peer.isSpeaker = false;
+      }, 2500);
+    });
     // rc.on(_EVENTSV2.removeProducer, ({ producer }) => {
     //   this.removeLocalStream(producer);
     // })
@@ -124,7 +139,7 @@ export class RoomV4Component implements OnInit {
 
   }
   public initSocket() {
-    this._socket = io('https://localhost:3016');
+    this._socket = io(environment.webSocketUrl);
     let socket = this._socket;
     socket.request = function request(type, data = {}) {
       return new Promise((resolve, reject) => {

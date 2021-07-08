@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-03 17:30:03
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-06 20:07:00
+ * @LastEditTime: 2021-07-08 13:28:02
  */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
@@ -12,6 +12,7 @@ import { CommonHelp } from '../../common/common-help';
 import { KeyValue, stream } from '../../models/types';
 import * as io from 'socket.io-client';
 import { RoomClientV2, _EVENTSV2, mediaTypeV2 } from '../../common/room-client-v2';
+import { environment } from '@env/environment';
 @Component({
   selector: 'app-room-v2',
   templateUrl: './room-v2.component.html',
@@ -122,7 +123,7 @@ export class RoomV2Component implements OnInit {
   }
 
   public initSocket() {
-    this._socket = io('https://localhost:3016');
+    this._socket = io(environment.webSocketUrl);
     let socket = this._socket;
     socket.request = function request(type, data = {}) {
       return new Promise((resolve, reject) => {

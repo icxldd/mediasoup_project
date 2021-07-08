@@ -10,6 +10,7 @@ export class HeadImgComponent implements OnInit {
   headImages: Map<string, string>;
   @Input() value: string | null;
   @Input() isMe:boolean=false;
+  @Input() isSpeaker:boolean = false;
   constructor() {
     this.headImages = new Map();
     this.headImages.set('1', 'http://imgs.wantubizhi.com/upload/i_0/T1huMFdJZ3Y2V3VzVloxUEtCaExYZz09/605029614x2240337309_26_0.jpg');

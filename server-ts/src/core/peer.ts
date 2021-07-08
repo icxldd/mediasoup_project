@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-06 16:48:47
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-08 11:11:05
+ * @LastEditTime: 2021-07-08 12:46:35
  */
 import { types as mediasoupTypes } from "mediasoup";
 import {
@@ -59,7 +59,10 @@ export class Peer {
     let obj = this.transports.get(producerTransportId);
     let producer = <Producer>await obj?.produce({
       kind,
-      rtpParameters
+      rtpParameters,
+      appData: {
+        peerId: this.id
+      }
     })
     this.producers.set(producer.id, producer);
     producer.on('transportclose', () => {

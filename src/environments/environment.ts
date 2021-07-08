@@ -1,10 +1,19 @@
+/*
+ * @Descripttion: 
+ * @version: 1.0
+ * @Author: icxl
+ * @Date: 2021-07-01 16:56:20
+ * @LastEditors: icxl
+ * @LastEditTime: 2021-07-08 13:27:06
+ */
 // This file can be replaced during build by using the `fileReplacements` array.
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
     production: false,
-    APIServer: 'https://d-xcloud-gateway.cxist.cn/web'
+    APIServer: 'https://d-xcloud-gateway.cxist.cn/web',
+    webSocketUrl:'https://localhost:3016'
 };
 
 /*

@@ -13,6 +13,7 @@ import * as mediasoupClient from "mediasoup-client";
 import { RoomClientTS } from '../../common/room-client-ts';
 import { mediaTypeV2, _EVENTSV2 } from '../../common/room-client-v2';
 import * as io from 'socket.io-client';
+import { environment } from '@env/environment';
 @Component({
   selector: 'app-room-ts',
   templateUrl: './room-ts.component.html',
@@ -118,7 +119,7 @@ export class RoomTsComponent implements OnInit {
   }
 
   public initSocket() {
-    this._socket = io('https://localhost:3016');
+    this._socket = io(environment.webSocketUrl);
     let socket = this._socket;
     socket.request = function request(type, data = {}) {
       return new Promise((resolve, reject) => {

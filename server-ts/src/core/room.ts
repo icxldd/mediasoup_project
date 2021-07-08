@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-06 16:55:18
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-08 10:53:15
+ * @LastEditTime: 2021-07-08 13:15:15
  */
 import { types as mediasoupTypes } from "mediasoup";
 import {
@@ -15,7 +15,7 @@ import {
   getSupportedRtpCapabilities,
   parseScalabilityMode
 } from 'mediasoup'
-import { Consumer, Producer, Transport, WebRtcTransport, Worker } from "mediasoup/lib/types";
+import { AudioLevelObserver, Consumer, Producer, Transport, WebRtcTransport, Worker } from "mediasoup/lib/types";
 import { Peer } from './peer';
 import config from '../config';
 import { map } from "lodash";
@@ -26,6 +26,7 @@ export class Room {
   peers: Map<string, Peer>;
   io: any;
   router: mediasoupTypes.Router | undefined;
+  audioLevelObserver: AudioLevelObserver | null = null;
   constructor(room_id: string, worker: Worker, io: any) {
     this.id = room_id;
     this.peers = new Map();
@@ -34,8 +35,16 @@ export class Room {
     const mediaCodecs = config.mediasoup.router.mediaCodecs;
     worker.createRouter({
       mediaCodecs
-    }).then((router) => {
+    }).then(async (router) => {
       this.router = router
+      this.audioLevelObserver = await this.router.createAudioLevelObserver({ maxEntries: 1, threshold: -65, interval: 800 });
+      this.audioLevelObserver.on("volumes", (volumes) => {
+        const { producer, volume } = volumes[0];
+        this.broadCastAll("activeSpeaker", {
+          peerId: producer.appData.peerId,
+          volume: volume
+        });
+      });
     });
   }
   addPeer(peer: Peer) {
@@ -108,7 +117,10 @@ export class Room {
   async produce(socket_id: string, producerTransportId: string, rtpParameters: any, kind: mediasoupTypes.MediaKind) {
     // handle undefined errors
     return new Promise(async (resolve, reject) => {
-      let producer = await this.peers.get(socket_id)?.createProducer(producerTransportId, rtpParameters, kind)
+      let producer = await this.peers.get(socket_id)?.createProducer(producerTransportId, rtpParameters, kind);
+      if (kind == "audio") {
+        this.audioLevelObserver?.addProducer({ producerId: <string>producer?.id }).catch(() => { });
+      }
       resolve(producer?.id)
       this.broadCast(socket_id, 'newProducers', [{
         producer_id: producer?.id,
@@ -183,11 +195,11 @@ export class Room {
 
 
 
-  toJson_peer(peerId:string) {
+  toJson_peer(peerId: string) {
     return {
       id: this.id,
       peers: JSON.stringify([...this.peers]),
-      peer:JSON.stringify(this.peers.get(peerId))
+      peer: JSON.stringify(this.peers.get(peerId))
     }
   }
 }

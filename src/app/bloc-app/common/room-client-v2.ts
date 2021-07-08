@@ -27,7 +27,8 @@ export const _EVENTSV2 = {
   newProducer: 'newProducer',
   roomUpdate: 'roomUpdate',
   selfUpdate: 'selfUpdate',
-  canStart:'canStart'
+  canStart:'canStart',
+  activeSpeaker:'activeSpeaker'
 }
 
 export class RoomClientV2 {
