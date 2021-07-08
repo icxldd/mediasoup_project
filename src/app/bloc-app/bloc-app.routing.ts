@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-01 16:56:19
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-07 17:38:47
+ * @LastEditTime: 2021-07-08 10:35:18
  */
 import { Routes, RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';

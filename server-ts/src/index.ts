@@ -4,7 +4,7 @@
  * @Author: icxl
  * @Date: 2021-07-06 16:37:36
  * @LastEditors: icxl
- * @LastEditTime: 2021-07-06 21:36:41
+ * @LastEditTime: 2021-07-08 10:24:36
  */
 const express = require('express')
 
@@ -194,7 +194,11 @@ io.on('connection', (socket: any) => {
 
     socket.on('getMyRoomInfo', (_: any, cb: any) => {
         cb(roomList.get(socket.room_id)?.toJson())
-    })
+    });
+
+    socket.on('getRoomInfo', ({ room_id }: any, cb: any) => {
+        cb(roomList.get(room_id)?.toJson())
+    });
 
     socket.on('disconnect', () => {
         console.log(`---disconnect--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id)?.getPeers().get(socket.id)?.name}`)
